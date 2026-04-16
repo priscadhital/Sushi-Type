@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sushi Type 🍣⌨️</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- Layered animated ambience (blobs + mesh) -->
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient__mesh"></div>
+    <div class="ambient__blob ambient__blob--1"></div>
+    <div class="ambient__blob ambient__blob--2"></div>
+    <div class="ambient__blob ambient__blob--3"></div>
+    <div class="ambient__wave"></div>
+  </div>
+  <div class="bg-pattern" aria-hidden="true"></div>
+  <div class="floaties" aria-hidden="true">
+    <span class="floaty floaty--1">🍣</span>
+    <span class="floaty floaty--2">🍱</span>
+    <span class="floaty floaty--3">🥢</span>
+    <span class="floaty floaty--4">🍤</span>
+    <span class="floaty floaty--5">🍙</span>
+    <span class="floaty floaty--6">🍥</span>
+  </div>
+  <!-- Floating +¥ / burst FX mount -->
+  <div id="fx-root" class="fx-root" aria-hidden="true"></div>
+
+  <!-- Intro / title screen -->
+  <section id="screen-intro" class="screen screen--intro active" data-screen="intro">
+    <div class="intro-card card card--glass card--pop">
+      <p class="intro-kicker">Welcome to the kitchen</p>
+      <h1 class="title title--hero title--gradient">Sushi Type <span class="emoji">🍣</span><span class="emoji">⌨️</span></h1>
+      <p class="intro-tagline">Type ingredients fast. Stack yen. Become a legend.</p>
+      <button type="button" class="btn btn--primary btn--large btn--pulse" id="btn-intro-continue">Enter Restaurant</button>
+    </div>
+  </section>
+
+  <!-- Auth: login / signup -->
+  <section id="screen-auth" class="screen" data-screen="auth">
+    <div class="auth-layout">
+      <div class="auth-brand card card--glass card--rise">
+        <h2 class="title title--gradient">Sushi Type</h2>
+        <p>Roll in, sign up, and save your stats locally.</p>
+      </div>
+      <div class="auth-panel card card--glass card--glow card--rise">
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" id="tab-login" role="tab" aria-selected="true">Login</button>
+          <button type="button" class="tab" id="tab-signup" role="tab" aria-selected="false">Sign up</button>
+        </div>
+
+        <form id="form-login" class="auth-form" autocomplete="on">
+          <label class="field">
+            <span>Username</span>
+            <input type="text" id="login-username" name="username" required minlength="2" maxlength="24" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="login-password" required />
+          </label>
+          <p class="form-error" id="login-error" role="alert"></p>
+          <button type="submit" class="btn btn--primary btn--block">Login</button>
+        </form>
+
+        <form id="form-signup" class="auth-form hidden" autocomplete="off">
+          <label class="field">
+            <span>Username</span>
+            <input type="text" id="signup-username" minlength="2" maxlength="24" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="signup-password" />
+          </label>
+          <ul class="password-rules" id="signup-rules" aria-live="polite">
+            <li data-rule="len">At least 8 characters</li>
+            <li data-rule="upper">One uppercase letter</li>
+            <li data-rule="lower">One lowercase letter</li>
+            <li data-rule="num">One number</li>
+            <li data-rule="special">One special character</li>
+          </ul>
+          <p class="form-error" id="signup-error" role="alert"></p>
+          <button type="submit" class="btn btn--primary btn--block">Create account</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main menu -->
+  <section id="screen-menu" class="screen" data-screen="menu">
+    <header class="top-bar card card--glass top-bar--float">
+      <div class="brand-small">
+        <span class="brand-emoji">🍣</span>
+        <span class="title--gradient title--sm">Sushi Type</span>
+      </div>
+      <div class="top-actions">
+        <span class="user-pill" id="menu-username"></span>
+        <button type="button" class="btn btn--ghost" id="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <div class="menu-grid">
+      <div class="card menu-card card--glass card--rise">
+        <h2 class="title--gradient title--sm">Start shift</h2>
+        <p class="muted">Pick difficulty — harder shifts pay riskier bonuses.</p>
+        <div class="difficulty-row">
+          <label class="diff-chip">
+            <input type="radio" name="difficulty" value="easy" checked />
+            <span>Easy</span>
+            <small>75s · shorter orders</small>
+          </label>
+          <label class="diff-chip">
+            <input type="radio" name="difficulty" value="medium" />
+            <span>Medium</span>
+            <small>60s · full menu</small>
+          </label>
+          <label class="diff-chip">
+            <input type="radio" name="difficulty" value="hard" />
+            <span>Hard</span>
+            <small>45s · epic rolls</small>
+          </label>
+        </div>
+        <button type="button" class="btn btn--primary btn--large btn--pulse" id="btn-start-game">Start game</button>
+      </div>
+
+      <div class="card menu-card card--glass card--rise">
+        <h2 class="title--gradient title--sm">Your profile</h2>
+        <dl class="stat-list" id="profile-stats">
+          <div><dt>Total money</dt><dd id="stat-total-money">—</dd></div>
+          <div><dt>Games played</dt><dd id="stat-games">—</dd></div>
+          <div><dt>Highest score</dt><dd id="stat-high-score">—</dd></div>
+          <div><dt>Best streak</dt><dd id="stat-best-streak">—</dd></div>
+        </dl>
+      </div>
+
+      <div class="card menu-card menu-card--wide card--glass card--rise">
+        <div class="leaderboard-head">
+          <h2 class="title--gradient title--sm">Leaderboard</h2>
+          <div class="seg" role="tablist">
+            <button type="button" class="seg-btn active" id="lb-by-score" data-sort="score">Top score</button>
+            <button type="button" class="seg-btn" id="lb-by-money" data-sort="money">Top money</button>
+          </div>
+        </div>
+        <ol class="leaderboard" id="leaderboard-list"></ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- Game: TypingClub-inspired HUD + focused typing stage -->
+  <section id="screen-game" class="screen screen--game" data-screen="game">
+    <header class="game-hud card card--glass">
+      <div class="game-hud__stats">
+        <div class="hud-chip" id="hud-money-wrap">
+          <span class="hud-chip__label">Money</span>
+          <strong class="hud-chip__val" id="game-money">¥0</strong>
+        </div>
+        <div class="hud-chip">
+          <span class="hud-chip__label">Served</span>
+          <strong class="hud-chip__val" id="game-completed">0</strong>
+        </div>
+        <div class="hud-chip hud-chip--streak" id="streak-wrap">
+          <span class="hud-chip__label">Streak</span>
+          <strong class="hud-chip__val" id="game-streak">0</strong>
+          <span class="streak-glow" aria-hidden="true"></span>
+        </div>
+        <div class="hud-chip hud-chip--timer" id="timer-chip">
+          <span class="hud-chip__label">Time</span>
+          <strong class="hud-chip__val" id="game-timer">60</strong>
+        </div>
+        <div class="hud-chip hud-chip--mode">
+          <span class="hud-chip__label">Mode</span>
+          <strong class="hud-chip__val" id="game-diff-label">Medium</strong>
+        </div>
+      </div>
+      <div class="timer-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="timer-bar" aria-label="Time remaining">
+        <div class="timer-bar__fill" id="timer-bar-fill"></div>
+        <div class="timer-bar__shine"></div>
+      </div>
+    </header>
+
+    <main class="game-focus">
+      <div class="order-card card card--glass" id="order-card">
+        <div class="order-ribbon" id="success-burst" aria-live="polite"></div>
+        <div class="order-top">
+          <p class="order-label">Current order</p>
+          <h2 class="order-name" id="sushi-name">—</h2>
+        </div>
+        <ul class="ingredient-pills ingredient-pills--compact" id="ingredient-pills"></ul>
+
+        <div class="typing-stage" id="typing-stage">
+          <p class="typing-hint">Type this ingredient</p>
+          <div class="typing-panel" id="ingredient-type-wrap">
+            <div class="chars chars--hero" id="ingredient-chars" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <p class="combo-hint" id="combo-hint"></p>
+      </div>
+    </main>
+
+    <footer class="game-footer">
+      <button type="button" class="btn btn--ghost" id="btn-abort-game">End shift</button>
+    </footer>
+  </section>
+
+  <!-- Game over -->
+  <section id="screen-gameover" class="screen" data-screen="gameover">
+    <div class="card card--glass card--glow gameover-card card--pop" id="gameover-card">
+      <h2 class="title title--gradient">Shift over!</h2>
+      <p class="muted">Here is how service went:</p>
+      <dl class="result-grid">
+        <div><dt>Score</dt><dd id="go-score">0</dd></div>
+        <div><dt>Money this round</dt><dd id="go-money">¥0</dd></div>
+        <div><dt>Sushi served</dt><dd id="go-served">0</dd></div>
+        <div><dt>Best streak</dt><dd id="go-streak">0</dd></div>
+      </dl>
+      <div class="gameover-actions">
+        <button type="button" class="btn btn--primary btn--pulse" id="btn-restart">Play again</button>
+        <button type="button" class="btn btn--ghost" id="btn-to-menu">Main menu</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
