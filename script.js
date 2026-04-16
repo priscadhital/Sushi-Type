@@ -345,16 +345,18 @@ function animateNumberTo(el, target, formatFn, durationMs = 260) {
 function updateTimerBar() {
   const bar = $("timer-bar");
   const fill = $("timer-bar-fill");
+  const chip = $("timer-chip");
   if (!bar || !fill) return;
   const max = game.durationSec || 1;
   const pct = game.active ? Math.max(0, Math.min(1, game.timeLeft / max)) : 0;
   bar.style.setProperty("--timer-pct", String(pct));
+  /* Same ratio on the clock face so the hand tracks remaining time */
+  if (chip) chip.style.setProperty("--timer-pct", String(pct));
   const pct100 = Math.round(pct * 100);
   bar.setAttribute("aria-valuenow", String(pct100));
 
   const warn = game.active && game.timeLeft <= 10;
   bar.classList.toggle("warn", warn);
-  const chip = $("timer-chip");
   if (chip) chip.classList.toggle("warn", warn);
 }
 
