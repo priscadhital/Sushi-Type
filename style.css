@@ -929,12 +929,124 @@ body {
 }
 
 /* =============================================================================
-   Game HUD + timer bar (TypingClub-style top progress)
+   Game top: timer clock (left) + HUD + full-width timer bar
    ============================================================================= */
-.game-hud {
+.game-screen-top {
   max-width: 920px;
   margin: 0 auto 1rem;
+  width: 100%;
+}
+
+.game-screen-top__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+@media (max-width: 520px) {
+  .game-screen-top__row {
+    flex-wrap: wrap;
+  }
+
+  .timer-clock {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Top-left clock widget */
+.timer-clock {
+  --timer-pct: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  flex-shrink: 0;
+  align-self: flex-start;
+  border-radius: var(--radius);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.timer-clock__ring {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.12), transparent 55%),
+    rgba(0, 0, 0, 0.22);
+  flex-shrink: 0;
+}
+
+.timer-clock__tick {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 3px;
+  height: 34%;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: linear-gradient(to top, var(--teal), var(--mint));
+  transform-origin: bottom center;
+  transform: rotate(calc(-90deg + (1 - var(--timer-pct, 1)) * 360deg));
+  transition: transform 0.35s var(--ease-out);
+  box-shadow: 0 0 8px rgba(94, 234, 212, 0.35);
+}
+
+.timer-clock__readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 3.5rem;
+}
+
+.timer-clock__label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.timer-clock__val {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.65rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--wasabi);
+  letter-spacing: -0.02em;
+}
+
+.timer-clock__unit {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 0.1rem;
+}
+
+.timer-clock.warn {
+  border-color: rgba(251, 113, 133, 0.45);
+  box-shadow: 0 0 22px rgba(251, 113, 133, 0.18);
+}
+
+.timer-clock.warn .timer-clock__val {
+  color: var(--danger);
+  animation: pulse 0.9s ease infinite;
+}
+
+.timer-clock.warn .timer-clock__tick {
+  background: linear-gradient(to top, #fb7185, #f97316);
+  box-shadow: 0 0 10px rgba(251, 113, 133, 0.45);
+}
+
+.game-hud {
   padding: 1rem 1.15rem 0.85rem;
+}
+
+.game-hud--with-clock {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
 }
 
 .game-hud__stats {
@@ -942,7 +1054,7 @@ body {
   flex-wrap: wrap;
   gap: 0.55rem;
   justify-content: center;
-  margin-bottom: 0.75rem;
+  align-items: stretch;
 }
 
 .hud-chip {
@@ -1038,15 +1150,6 @@ body {
   100% {
     transform: scale(1);
   }
-}
-
-.hud-chip--timer strong {
-  color: var(--wasabi);
-}
-
-.hud-chip--timer.warn .hud-chip__val {
-  color: var(--danger);
-  animation: pulse 0.9s ease infinite;
 }
 
 @keyframes pulse {
