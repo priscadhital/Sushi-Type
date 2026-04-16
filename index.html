@@ -151,35 +151,45 @@
 
   <!-- Game: TypingClub-inspired HUD + focused typing stage -->
   <section id="screen-game" class="screen screen--game" data-screen="game">
-    <header class="game-hud card card--glass">
-      <div class="game-hud__stats">
-        <div class="hud-chip" id="hud-money-wrap">
-          <span class="hud-chip__label">Money</span>
-          <strong class="hud-chip__val" id="game-money">¥0</strong>
-        </div>
-        <div class="hud-chip">
-          <span class="hud-chip__label">Served</span>
-          <strong class="hud-chip__val" id="game-completed">0</strong>
-        </div>
-        <div class="hud-chip hud-chip--streak" id="streak-wrap">
-          <span class="hud-chip__label">Streak</span>
-          <strong class="hud-chip__val" id="game-streak">0</strong>
-          <span class="streak-glow" aria-hidden="true"></span>
-        </div>
-        <div class="hud-chip hud-chip--timer" id="timer-chip">
-          <span class="hud-chip__label">Time</span>
-          <strong class="hud-chip__val" id="game-timer">60</strong>
-        </div>
-        <div class="hud-chip hud-chip--mode">
-          <span class="hud-chip__label">Mode</span>
-          <strong class="hud-chip__val" id="game-diff-label">Medium</strong>
-        </div>
+    <div class="game-screen-top">
+      <div class="game-screen-top__row">
+        <aside class="timer-clock card card--glass" id="timer-chip" aria-label="Time remaining">
+          <div class="timer-clock__ring" aria-hidden="true">
+            <span class="timer-clock__tick"></span>
+          </div>
+          <div class="timer-clock__readout">
+            <span class="timer-clock__label">Time</span>
+            <strong class="timer-clock__val" id="game-timer">60</strong>
+            <span class="timer-clock__unit">sec</span>
+          </div>
+        </aside>
+        <header class="game-hud card card--glass game-hud--with-clock">
+          <div class="game-hud__stats">
+            <div class="hud-chip" id="hud-money-wrap">
+              <span class="hud-chip__label">Money</span>
+              <strong class="hud-chip__val" id="game-money">¥0</strong>
+            </div>
+            <div class="hud-chip">
+              <span class="hud-chip__label">Served</span>
+              <strong class="hud-chip__val" id="game-completed">0</strong>
+            </div>
+            <div class="hud-chip hud-chip--streak" id="streak-wrap">
+              <span class="hud-chip__label">Streak</span>
+              <strong class="hud-chip__val" id="game-streak">0</strong>
+              <span class="streak-glow" aria-hidden="true"></span>
+            </div>
+            <div class="hud-chip hud-chip--mode">
+              <span class="hud-chip__label">Mode</span>
+              <strong class="hud-chip__val" id="game-diff-label">Medium</strong>
+            </div>
+          </div>
+        </header>
       </div>
       <div class="timer-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="timer-bar" aria-label="Time remaining">
         <div class="timer-bar__fill" id="timer-bar-fill"></div>
         <div class="timer-bar__shine"></div>
       </div>
-    </header>
+    </div>
 
     <main class="game-focus">
       <div class="order-card card card--glass" id="order-card">
