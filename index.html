@@ -103,26 +103,11 @@
     </header>
 
     <div class="menu-grid">
-      <div class="card menu-card card--glass card--rise">
+      <div class="card menu-card menu-card--levels card--glass card--rise">
         <h2 class="title--gradient title--sm">Start shift</h2>
-        <p class="muted">Pick difficulty — harder shifts pay riskier bonuses.</p>
-        <div class="difficulty-row">
-          <label class="diff-chip">
-            <input type="radio" name="difficulty" value="easy" checked />
-            <span>Easy</span>
-            <small>75s · shorter orders</small>
-          </label>
-          <label class="diff-chip">
-            <input type="radio" name="difficulty" value="medium" />
-            <span>Medium</span>
-            <small>60s · full menu</small>
-          </label>
-          <label class="diff-chip">
-            <input type="radio" name="difficulty" value="hard" />
-            <span>Hard</span>
-            <small>45s · epic rolls</small>
-          </label>
-        </div>
+        <p class="muted">Tap an unlocked level. Each has its own motion. Higher levels are shorter and tougher.</p>
+        <div id="level-grid" class="level-grid" role="group" aria-label="Levels"></div>
+        <p class="muted level-picker__hint" id="level-hint"></p>
         <button type="button" class="btn btn--primary btn--large btn--pulse" id="btn-start-game">Start game</button>
       </div>
 
@@ -151,6 +136,14 @@
 
   <!-- Game: TypingClub-inspired HUD + focused typing stage -->
   <section id="screen-game" class="screen screen--game" data-screen="game">
+    <div class="restaurant-bg" aria-hidden="true">
+      <div class="restaurant-bg__wood"></div>
+      <div class="restaurant-bg__paper"></div>
+      <div class="restaurant-bg__lamp"></div>
+      <div class="restaurant-bg__bokeh"></div>
+      <div class="restaurant-bg__steam restaurant-bg__steam--a"></div>
+      <div class="restaurant-bg__steam restaurant-bg__steam--b"></div>
+    </div>
     <div class="game-screen-top">
       <div class="game-screen-top__row">
         <aside class="timer-clock card card--glass" id="timer-chip" aria-label="Time remaining">
@@ -179,8 +172,8 @@
               <span class="streak-glow" aria-hidden="true"></span>
             </div>
             <div class="hud-chip hud-chip--mode">
-              <span class="hud-chip__label">Mode</span>
-              <strong class="hud-chip__val" id="game-diff-label">Medium</strong>
+              <span class="hud-chip__label">Level</span>
+              <strong class="hud-chip__val" id="game-level-label">1</strong>
             </div>
           </div>
         </header>
@@ -198,6 +191,25 @@
           <p class="order-label">Current order</p>
           <h2 class="order-name" id="sushi-name">—</h2>
         </div>
+
+        <div class="sushi-counter" id="sushi-counter" aria-hidden="true">
+          <div class="sushi-counter__label">Your plate</div>
+          <div class="sushi-stage" id="sushi-stage" data-progress="0">
+            <div class="sushi-stage__plate"></div>
+            <div class="sushi-stage__shadow"></div>
+            <div class="sushi-stage__stack" id="sushi-stack"></div>
+            <div class="sushi-stage__face" aria-hidden="true">
+              <span class="sushi-face__eye sushi-face__eye--l"></span>
+              <span class="sushi-face__eye sushi-face__eye--r"></span>
+              <span class="sushi-face__blush sushi-face__blush--l"></span>
+              <span class="sushi-face__blush sushi-face__blush--r"></span>
+              <span class="sushi-face__mouth"></span>
+            </div>
+            <div class="sushi-stage__steam" aria-hidden="true"></div>
+          </div>
+          <div class="sushi-sparkles" id="sushi-sparkles" aria-hidden="true"></div>
+        </div>
+
         <ul class="ingredient-pills ingredient-pills--compact" id="ingredient-pills"></ul>
 
         <div class="typing-stage" id="typing-stage">
@@ -227,6 +239,7 @@
         <div><dt>Sushi served</dt><dd id="go-served">0</dd></div>
         <div><dt>Best streak</dt><dd id="go-streak">0</dd></div>
       </dl>
+      <p class="unlock-note hidden" id="go-unlock" role="status"></p>
       <div class="gameover-actions">
         <button type="button" class="btn btn--primary btn--pulse" id="btn-restart">Play again</button>
         <button type="button" class="btn btn--ghost" id="btn-to-menu">Main menu</button>
