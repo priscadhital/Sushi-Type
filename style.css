@@ -391,7 +391,141 @@ body {
 }
 
 .screen--game {
+  position: relative;
+  overflow: hidden;
   padding-top: 1rem;
+  transition: box-shadow 0.45s ease;
+}
+
+/* ---------------------------------------------------------------------------
+   Game screen — izakaya / sushi counter atmosphere (behind HUD & card)
+   --------------------------------------------------------------------------- */
+.restaurant-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.restaurant-bg__wood {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 100% 70% at 50% 100%, rgba(120, 72, 42, 0.45), transparent 58%),
+    radial-gradient(ellipse 80% 55% at 12% 18%, rgba(255, 210, 160, 0.12), transparent 45%),
+    radial-gradient(ellipse 60% 50% at 88% 22%, rgba(255, 180, 140, 0.1), transparent 50%),
+    linear-gradient(180deg, rgba(28, 20, 16, 0.92) 0%, rgba(42, 28, 20, 0.96) 45%, rgba(22, 16, 12, 0.98) 100%),
+    repeating-linear-gradient(
+      92deg,
+      rgba(70, 48, 32, 0.22) 0px,
+      rgba(70, 48, 32, 0.22) 1px,
+      transparent 1px,
+      transparent 14px
+    );
+}
+
+.restaurant-bg__paper {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(rgba(255, 252, 245, 0.06) 1px, transparent 1px);
+  background-size: 10px 10px;
+  mix-blend-mode: soft-light;
+}
+
+.restaurant-bg__lamp {
+  position: absolute;
+  top: -12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(140%, 900px);
+  height: 55%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 230, 190, 0.28), transparent 62%);
+  animation: lampPulse 5.5s ease-in-out infinite;
+}
+
+@keyframes lampPulse {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.03);
+  }
+}
+
+.restaurant-bg__bokeh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 70%, rgba(45, 212, 191, 0.12) 0%, transparent 28%),
+    radial-gradient(circle at 82% 65%, rgba(255, 123, 156, 0.1) 0%, transparent 26%),
+    radial-gradient(circle at 50% 88%, rgba(253, 224, 71, 0.08) 0%, transparent 35%);
+}
+
+.restaurant-bg__steam {
+  position: absolute;
+  bottom: 0;
+  width: 40%;
+  height: 42%;
+  background: linear-gradient(0deg, transparent, rgba(255, 255, 255, 0.04));
+  border-radius: 50% 50% 0 0 / 40% 40% 0 0;
+  filter: blur(18px);
+  opacity: 0.45;
+  animation: counterSteam 7s ease-in-out infinite;
+}
+
+.restaurant-bg__steam--a {
+  left: 8%;
+}
+
+.restaurant-bg__steam--b {
+  right: 6%;
+  animation-delay: -3.2s;
+  width: 36%;
+}
+
+@keyframes counterSteam {
+  0%,
+  100% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-12px) scaleX(1.05);
+    opacity: 0.55;
+  }
+}
+
+body.game-restaurant .ambient {
+  opacity: 0.38;
+}
+
+body.game-restaurant .ambient__mesh {
+  filter: hue-rotate(-8deg) saturate(0.75);
+}
+
+body.game-restaurant .floaties {
+  opacity: 0.22;
+}
+
+.screen--game > .game-screen-top,
+.screen--game > .game-focus,
+.screen--game > .game-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.screen--game[data-theme-level] .order-card:not(.order-card--celebrate) {
+  box-shadow:
+    var(--shadow),
+    0 0 52px var(--game-theme-glow, rgba(45, 212, 191, 0.22));
+}
+
+.screen--game[data-theme-level] .timer-clock {
+  border-color: color-mix(in srgb, var(--game-theme-glow) 35%, rgba(255, 255, 255, 0.12));
 }
 
 #screen-gameover.active {
@@ -747,54 +881,109 @@ body {
   margin: 0 0 0.35rem;
 }
 
-.difficulty-row {
+.menu-card--levels {
+  grid-column: 1 / -1;
+}
+
+.level-grid {
   display: grid;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(3.85rem, 1fr));
+  gap: 0.5rem;
+  max-height: min(46vh, 480px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0.2rem 0.1rem 0.5rem;
+  margin-bottom: 0.65rem;
+  scrollbar-gutter: stable;
 }
 
-@media (min-width: 520px) {
-  .difficulty-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.diff-chip {
-  display: block;
-  cursor: pointer;
-  border-radius: 16px;
-  padding: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.18);
-  transition: border-color 0.2s, background 0.2s, transform 0.15s ease;
-}
-
-.diff-chip:hover {
-  transform: translateY(-2px);
-}
-
-.diff-chip:has(input:checked) {
-  border-color: var(--teal);
-  background: rgba(45, 212, 191, 0.12);
-  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.2);
-}
-
-.diff-chip input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.diff-chip span {
-  display: block;
+.level-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-height: 3.35rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--text);
+  font-family: inherit;
   font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.15s ease;
 }
 
-.diff-chip small {
-  display: block;
-  color: var(--muted);
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
+.level-chip:not(.level-chip--locked) .level-chip__num {
+  font-size: 1.05rem;
+  line-height: 1;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+.level-chip:hover:not(:disabled) {
+  z-index: 1;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.level-chip:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.level-chip--selected:not(.level-chip--locked) {
+  border-color: rgba(45, 212, 191, 0.92);
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.45),
+    0 0 26px rgba(45, 212, 191, 0.28);
+}
+
+.level-chip--locked {
+  cursor: not-allowed;
+  animation: none !important;
+  gap: 0.15rem;
+  padding: 0.2rem 0.15rem 0.35rem;
+}
+
+.level-chip__lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(230, 220, 255, 0.92);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+  line-height: 0;
+}
+
+.level-chip__lock svg {
+  width: 2.35rem;
+  height: 2.35rem;
+  max-width: 100%;
+}
+
+.level-chip--locked .level-chip__num {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+
+.level-picker__hint {
+  margin: 0 0 0.85rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.unlock-note {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.unlock-note.hidden {
+  display: none;
 }
 
 .stat-list {
@@ -1220,6 +1409,7 @@ body {
   width: 100%;
   max-width: 760px;
   position: relative;
+  z-index: 2;
   transition: box-shadow 0.35s ease, transform 0.35s var(--ease-out);
 }
 
@@ -1300,6 +1490,402 @@ body {
   font-weight: 700;
 }
 
+/* Sushi counter + animated plate (game order card) */
+.sushi-counter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0 1rem;
+  padding: 0.75rem 0.5rem 1rem;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 247, 235, 0.06), rgba(0, 0, 0, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.sushi-counter__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+.sushi-stage {
+  position: relative;
+  width: min(100%, 320px);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 0.35rem;
+  transition: filter 0.35s ease, box-shadow 0.35s ease;
+}
+
+.sushi-stage--happy {
+  filter: drop-shadow(0 0 16px rgba(253, 224, 71, 0.45));
+}
+
+.sushi-stage__plate {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 30%, #f5f0e8, #c4b6a8 55%, #8a7a6c 100%);
+  box-shadow:
+    0 8px 0 rgba(60, 48, 40, 0.45),
+    inset 0 3px 8px rgba(255, 255, 255, 0.35),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.sushi-stage__shadow {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.35), transparent 70%);
+  filter: blur(6px);
+  z-index: 0;
+}
+
+.sushi-stage__stack {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  padding-bottom: 22px;
+  min-height: 72px;
+}
+
+.sushi-layer {
+  --fill: 0;
+  width: min(168px, 88%);
+  border-radius: 10px;
+  margin-bottom: 2px;
+  transform-origin: bottom center;
+  transform: scaleY(var(--fill));
+  opacity: calc(0.35 + 0.65 * var(--fill));
+  transition:
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease,
+    filter 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  will-change: transform;
+}
+
+.sushi-layer--rice {
+  height: 22px;
+  background: linear-gradient(180deg, #fffdf7, #f3ead8 60%, #e8dcc4);
+  border-radius: 12px 12px 8px 8px;
+}
+
+.sushi-layer--nori {
+  height: 8px;
+  background: linear-gradient(180deg, #1a3328, #0f2218);
+  border-radius: 4px;
+}
+
+.sushi-layer--salmon {
+  height: 16px;
+  background: linear-gradient(90deg, #fb7185, #fda4af 50%, #fb7185);
+}
+
+.sushi-layer--tuna {
+  height: 15px;
+  background: linear-gradient(90deg, #be123c, #e11d48 45%, #9f1239);
+}
+
+.sushi-layer--crab {
+  height: 14px;
+  background: linear-gradient(90deg, #fecdd3, #fda4af 40%, #fb923c);
+}
+
+.sushi-layer--avocado {
+  height: 13px;
+  background: linear-gradient(180deg, #86efac, #4ade80 55%, #166534);
+}
+
+.sushi-layer--cucumber {
+  height: 11px;
+  background: linear-gradient(180deg, #bbf7d0, #22c55e 50%, #14532d);
+}
+
+.sushi-layer--shrimp {
+  height: 15px;
+  background: linear-gradient(90deg, #fecaca, #fca5a5 40%, #f87171);
+}
+
+.sushi-layer--tempura {
+  height: 16px;
+  background: linear-gradient(180deg, #fde68a, #fbbf24 45%, #d97706);
+}
+
+.sushi-layer--eel {
+  height: 14px;
+  background: linear-gradient(90deg, #57534e, #78716c 50%, #44403c);
+}
+
+.sushi-layer--egg {
+  height: 13px;
+  background: linear-gradient(180deg, #fef9c3, #fde047 50%, #eab308);
+}
+
+.sushi-layer--mayo {
+  height: 10px;
+  background: linear-gradient(180deg, #fffbeb, #fef3c7);
+  border-radius: 999px;
+}
+
+.sushi-layer--cheese {
+  height: 11px;
+  background: linear-gradient(180deg, #fff, #f1f5f9 60%, #e2e8f0);
+}
+
+.sushi-layer--spicy {
+  height: 12px;
+  background: linear-gradient(90deg, #fb7185, #f43f5e 50%, #be123c);
+}
+
+.sushi-layer--sauce {
+  height: 9px;
+  background: linear-gradient(90deg, rgba(120, 53, 15, 0.9), rgba(180, 83, 9, 0.95));
+  border-radius: 999px;
+}
+
+.sushi-layer--veg {
+  height: 11px;
+  background: linear-gradient(180deg, #bbf7d0, #16a34a);
+}
+
+.sushi-layer--mango {
+  height: 12px;
+  background: linear-gradient(90deg, #fde047, #facc15 50%, #ca8a04);
+}
+
+.sushi-layer--corn {
+  height: 11px;
+  background: linear-gradient(90deg, #fef08a, #eab308);
+}
+
+.sushi-layer--carrot {
+  height: 10px;
+  background: linear-gradient(90deg, #fdba74, #ea580c);
+}
+
+.sushi-layer--tobiko {
+  height: 10px;
+  background: radial-gradient(circle at 30% 40%, #f97316, #ea580c 40%, #c2410c);
+}
+
+.sushi-layer--sesame {
+  height: 8px;
+  background: repeating-linear-gradient(90deg, #fef3c7, #fef3c7 3px, #d6d3d1 3px, #d6d3d1 6px);
+}
+
+.sushi-layer--lobster {
+  height: 15px;
+  background: linear-gradient(90deg, #fecaca, #fb7185 45%, #e11d48);
+}
+
+.sushi-layer--ink {
+  height: 14px;
+  background: linear-gradient(180deg, #1e293b, #0f172a);
+}
+
+.sushi-layer--chicken {
+  height: 13px;
+  background: linear-gradient(90deg, #fde68a, #fcd34d 40%, #d97706);
+}
+
+.sushi-layer--steak {
+  height: 14px;
+  background: linear-gradient(90deg, #7f1d1d, #991b1b 50%, #450a0a);
+}
+
+.sushi-layer--smoked {
+  height: 13px;
+  background: linear-gradient(90deg, #57534e, #78716c);
+}
+
+.sushi-layer--matcha {
+  height: 12px;
+  background: linear-gradient(180deg, #bbf7d0, #15803d);
+}
+
+.sushi-layer--gold {
+  height: 11px;
+  background: linear-gradient(90deg, #fef08a, #eab308 40%, #ca8a04);
+  box-shadow: 0 0 12px rgba(253, 224, 71, 0.45);
+}
+
+.sushi-layer--pistachio {
+  height: 11px;
+  background: linear-gradient(90deg, #d9f99d, #84cc16 45%, #3f6212);
+}
+
+.sushi-layer--crunch {
+  height: 10px;
+  background: linear-gradient(90deg, #fef3c7, #f59e0b);
+  border-radius: 4px;
+}
+
+.sushi-layer--accent {
+  height: 12px;
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.5), rgba(125, 211, 252, 0.55));
+}
+
+.sushi-layer--ghost {
+  opacity: 0.4;
+  filter: grayscale(0.45) brightness(0.9);
+  box-shadow: none;
+}
+
+.sushi-stage__face {
+  position: absolute;
+  z-index: 4;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 34px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.45s var(--ease-out);
+}
+
+.sushi-stage--alive .sushi-stage__face {
+  opacity: 0.95;
+}
+
+.sushi-stage--happy .sushi-stage__face {
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.sushi-face__eye {
+  position: absolute;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1e1b4b;
+  animation: sushiBlink 4s step-end infinite;
+}
+
+.sushi-face__eye--l {
+  left: 10px;
+}
+
+.sushi-face__eye--r {
+  right: 10px;
+}
+
+@keyframes sushiBlink {
+  0%,
+  96%,
+  100% {
+    transform: scaleY(1);
+  }
+  98% {
+    transform: scaleY(0.1);
+  }
+}
+
+.sushi-face__blush {
+  position: absolute;
+  top: 16px;
+  width: 12px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(251, 113, 133, 0.45);
+  filter: blur(1px);
+}
+
+.sushi-face__blush--l {
+  left: 4px;
+}
+
+.sushi-face__blush--r {
+  right: 4px;
+}
+
+.sushi-face__mouth {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 8px;
+  border: 2px solid #1e1b4b;
+  border-top: none;
+  border-radius: 0 0 18px 18px;
+}
+
+.sushi-stage__steam {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 48px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, 0.12), transparent 65%);
+  filter: blur(10px);
+  opacity: 0.55;
+  animation: plateSteam 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes plateSteam {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 0.65;
+    transform: translateX(-50%) translateY(-6px);
+  }
+}
+
+.sushi-sparkles {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 160px;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.sushi-spark {
+  position: absolute;
+  left: var(--sx, 50%);
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fef9c3, #fde047 40%, transparent 72%);
+  animation: sparkleRise 0.78s var(--ease-out) forwards;
+  box-shadow: 0 0 14px rgba(253, 224, 71, 0.65);
+}
+
+@keyframes sparkleRise {
+  to {
+    transform: translateX(-50%) translateY(-76px) scale(0.15);
+    opacity: 0;
+  }
+}
+
 .ingredient-pills {
   list-style: none;
   padding: 0;
@@ -1334,6 +1920,19 @@ body {
   color: #fff;
   transform: scale(1.04);
   box-shadow: 0 6px 20px rgba(255, 123, 156, 0.2);
+  animation: pillGlow 1.85s ease-in-out infinite;
+}
+
+@keyframes pillGlow {
+  0%,
+  100% {
+    box-shadow: 0 6px 20px rgba(255, 123, 156, 0.22);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 10px 32px rgba(255, 123, 156, 0.42);
+    filter: brightness(1.08);
+  }
 }
 
 .ingredient-pills li.ing-pop {
@@ -1378,6 +1977,25 @@ body {
 
 .typing-panel--pop {
   animation: typingPop 0.5s var(--ease-out);
+}
+
+.typing-panel--tick {
+  animation: typingTick 0.22s var(--ease-out);
+}
+
+@keyframes typingTick {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.012);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 0 1px rgba(45, 212, 191, 0.35);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes typingPop {
