@@ -29,15 +29,21 @@ const SFX = {
 // ---------------------------------------------------------------------------
 const STORAGE_ACCOUNTS = "sushiType_accounts_v1";
 const STORAGE_SESSION = "sushiType_session_user";
+/** Highest level the player may select (1 = only level 1). Grows when a shift ends on the timer. */
+const STORAGE_MAX_UNLOCKED_LEVEL = "sushiType_maxUnlockedLevel_v1";
 
-/** Full menu: named rolls map to ordered ingredient strings the player must type. */
+/**
+ * Full ingredient pool per roll. Each order randomly picks a subset (count + order),
+ * so two California orders can ask for different ingredients.
+ */
 const SUSHI_MENU = {
   "California Roll": ["sushi rice", "nori", "crab", "avocado", "cucumber"],
   Nigiri: ["sushi rice", "salmon"],
   "Tempura Roll": ["tempura shrimp", "sushi rice", "nori", "avocado", "cucumber"],
   Sashimi: ["salmon", "tuna"],
   "Philadelphia Roll": ["sushi rice", "nori", "smoked salmon", "cream cheese"],
-  Maki: ["sushi rice", "nori", "filling"],
+  /** Classic maki-style pool (distinct from California / rainbow). */
+  Maki: ["sushi rice", "nori", "cucumber", "scallion", "sesame seeds", "pickled daikon"],
   "Rainbow Roll": [
     "sushi rice",
     "salmon",
@@ -48,66 +54,233 @@ const SUSHI_MENU = {
     "avocado",
     "nori",
   ],
-  "Super Sushi": [
+  "Salmontastic Roll": ["salmon", "sushi rice", "caviar", "nori"],
+  ICodeshimi: ["matcha paste", "sushi rice", "nori", "salmon"],
+  "Rice Bowl": ["nori", "sushi rice"],
+  "Burnt Tempura Roll": ["crispy tempura shrimp", "sushi rice", "nori", "cajun seasoning"],
+  "Sushi Salad": ["nori", "sushi rice", "avocado", "cucumber", "cream cheese"],
+  "Aquarium Style": ["nori", "crab", "salmon", "tempura shrimp", "caviar"],
+  /** No list given — light house specialty pool. */
+  "Donta' Sushi": ["sushi rice", "nori", "salmon", "crab"],
+  "Mini Roll": ["salmon", "sushi rice"],
+  "Koru' Sushi": ["breaded shrimp", "pistachio crumbles", "ranch paste"],
+  "Mouthful Roll": ["humuhumunukunukuapua'a", "sushi rice", "nori"],
+  "Dragon Roll": ["eel", "avocado", "cucumber", "sushi rice", "nori", "eel sauce"],
+  "Volcano Roll": [
+    "spicy tuna",
+    "crab",
+    "baked spicy mayo topping",
+    "jalapeno",
     "sushi rice",
     "nori",
-    "salmon",
-    "tuna",
-    "tempura shrimp",
-    "avocado",
-    "cucumber",
   ],
-  "Salmontastic Roll": [
-    "smoked salmon",
-    "salmon",
+  "Mango Tango Roll": ["shrimp tempura", "mango", "avocado", "cucumber", "sushi rice", "nori"],
+  "Tokyo Crunch Roll": ["fried onion crisps", "spicy crab", "cucumber", "sushi rice", "nori"],
+  "Samurai Roll": ["steak strips", "cream cheese", "jalapeno", "sushi rice", "nori"],
+  "Ocean Blast Roll": ["tuna", "salmon", "yellowtail", "tobiko", "sushi rice", "nori"],
+  "Firecracker Roll": ["spicy shrimp", "chili flakes", "avocado", "sushi rice", "nori"],
+  "Snow Roll": [
+    "crab",
+    "cucumber",
     "sushi rice",
     "nori",
-    "cream cheese",
-    "cucumber",
+    "white sesame",
+    "cream cheese topping",
   ],
-  ICodeshimi: ["salmon", "tuna", "yellowtail", "shrimp"],
-  "Rice Bowl": ["sushi rice", "salmon", "avocado", "cucumber", "shrimp"],
-  Shushimo: ["tempura shrimp", "nori", "sushi rice", "crab", "cream cheese"],
-  Moshimi: ["tuna", "yellowtail", "smoked salmon", "salmon"],
+  "Garden Roll": ["carrot", "cucumber", "avocado", "asparagus", "sushi rice", "nori"],
+  "Golden Tiger Roll": ["tempura lobster", "mango sauce", "avocado", "sushi rice", "nori"],
+  "Midnight Roll": ["squid ink rice", "tuna", "cucumber", "black sesame", "nori"],
+  "Lava Crunch Roll": ["tempura shrimp", "hot mayo", "crushed chips", "sushi rice", "nori"],
+  "Neon Roll": ["salmon", "kiwi", "cucumber", "glowing green sauce"],
+  "Treasure Roll": ["crab", "shrimp", "gold flakes", "avocado", "sushi rice", "nori"],
+  "Thunder Roll": ["eel", "jalapeno", "tempura flakes", "spicy mayo", "sushi rice", "nori"],
+  "Sakura Roll": ["tuna", "pickled radish", "cucumber", "pink soy paper"],
+  "Cactus Roll": ["grilled chicken", "avocado", "cactus strips", "sushi rice", "nori"],
+  "Texas Roll": ["smoked brisket", "jalapeno", "cream cheese", "sushi rice", "nori"],
+  "Pixel Roll": ["diced tuna cubes", "avocado cubes", "cucumber cubes", "sushi rice", "nori"],
+  "Galaxy Roll": ["purple rice", "salmon", "blue corn crunch", "silver sesame"],
 };
 
-const DIFFICULTY = {
-  easy: {
-    label: "Easy",
-    durationSec: 75,
-    baseSushiYen: 42,
-    msPerCharBudget: 520,
-    streakBonusYen: 6,
-    pickRecipe(names) {
-      const short = names.filter((n) => SUSHI_MENU[n].length <= 5);
-      return short.length ? pickRandom(short) : pickRandom(names);
-    },
-  },
-  medium: {
-    label: "Medium",
-    durationSec: 60,
-    baseSushiYen: 35,
-    msPerCharBudget: 420,
-    streakBonusYen: 8,
-    pickRecipe(names) {
-      return pickRandom(names);
-    },
-  },
-  hard: {
-    label: "Hard",
-    durationSec: 45,
-    baseSushiYen: 28,
-    msPerCharBudget: 340,
-    streakBonusYen: 10,
-    pickRecipe(names) {
-      const epic = names.filter((n) => SUSHI_MENU[n].length >= 6);
-      const pool = epic.length ? epic : names;
-      const longish = pool.filter((n) => SUSHI_MENU[n].length >= 6);
-      if (longish.length && Math.random() < 0.65) return pickRandom(longish);
-      return pickRandom(pool);
-    },
-  },
-};
+/** Numbered levels: 1 (gentlest) → LEVEL_MAX (short timer, tight typing, bigger rolls). */
+const LEVEL_MAX = 50;
+
+/** Display name for each level’s visual theme (tooltips + hints). */
+const LEVEL_THEME_TITLES = (() => {
+  const a = [
+    "Paper Lantern",
+    "Harbor Mist",
+    "Moon Deck",
+    "Coral Kitchen",
+    "Sakura Shoji",
+    "Midnight Pier",
+    "Golden Market",
+    "Azure Atoll",
+    "Ember Reef",
+    "Pearl Tide",
+    "Citrus Zest",
+    "Velvet Lotus",
+    "Lotus Garden",
+    "Storm Passage",
+    "Zen Kitchen",
+    "Neon Dock",
+    "Royal Tea",
+    "Silk Rice",
+    "Bamboo Breeze",
+    "Ocean Shell",
+    "Crystal Wave",
+    "Ruby Flame",
+    "Forest Mist",
+    "Desert Sun",
+    "Arctic Frost",
+    "Tropical Glow",
+    "Urban Alley",
+    "Garden Gate",
+    "Kitchen Hearth",
+    "Dock Lights",
+    "Roof Stars",
+    "Temple Bell",
+    "River Song",
+    "Cliff Wind",
+    "Dune Gold",
+    "Meadow Dew",
+    "Glacier Blue",
+    "Volcano Ember",
+    "Thunder Roll",
+    "Aurora Sky",
+    "Cloud Nine",
+    "Rain Song",
+    "Sunset Grill",
+    "Dawn Service",
+    "Twilight Bar",
+    "Fire Omakase",
+    "Ice Sculpture",
+    "Mystic Cove",
+    "Crown Service",
+    "Silver Tray",
+  ];
+  return a.slice(0, LEVEL_MAX);
+})();
+
+function levelProgress(level) {
+  const L = Math.max(1, Math.min(LEVEL_MAX, level));
+  return (L - 1) / (LEVEL_MAX - 1);
+}
+
+function createPickRecipe(progress) {
+  return function pickRecipe(names) {
+    const r = Math.random();
+    const short = names.filter((n) => SUSHI_MENU[n].length <= 5);
+    const longish = names.filter((n) => SUSHI_MENU[n].length >= 6);
+    if (longish.length && r < progress * 0.72 + 0.08) return pickRandom(longish);
+    if (short.length && r > 0.4 + progress * 0.45) return pickRandom(short);
+    return pickRandom(names);
+  };
+}
+
+/** Per-level tuning: shorter rounds and tighter budgets as level rises. */
+function getLevelConfig(level) {
+  const L = Math.max(1, Math.min(LEVEL_MAX, Math.floor(Number(level)) || 1));
+  const p = levelProgress(L);
+  const durationSec = Math.round(72 - p * (72 - 18));
+  const msPerCharBudget = Math.round(505 - p * (505 - 195));
+  const baseSushiYen = Math.round(40 - p * 12);
+  const streakBonusYen = Math.round(6 + p * 10);
+  const speedTightness = 1 - p * 0.15;
+  return {
+    level: L,
+    label: String(L),
+    durationSec,
+    baseSushiYen,
+    msPerCharBudget,
+    streakBonusYen,
+    speedTightness,
+    pickRecipe: createPickRecipe(p),
+  };
+}
+
+function loadMaxUnlockedLevel() {
+  try {
+    const v = Number(localStorage.getItem(STORAGE_MAX_UNLOCKED_LEVEL));
+    if (!Number.isFinite(v) || v < 1) return 1;
+    return Math.min(LEVEL_MAX, Math.floor(v));
+  } catch {
+    return 1;
+  }
+}
+
+function saveMaxUnlockedLevel(n) {
+  const v = Math.max(1, Math.min(LEVEL_MAX, Math.floor(n)));
+  localStorage.setItem(STORAGE_MAX_UNLOCKED_LEVEL, String(v));
+}
+
+/**
+ * Timer runs out on level L with at least one plate served → level L+1 becomes playable.
+ * Ending shift early does not unlock.
+ */
+function tryUnlockNextLevel(levelPlayed, platesCompleted) {
+  const minPlates = 1;
+  if (platesCompleted < minPlates) return false;
+  const before = loadMaxUnlockedLevel();
+  const candidate = Math.min(LEVEL_MAX, levelPlayed + 1);
+  const newMax = Math.max(before, candidate);
+  if (newMax > before) {
+    saveMaxUnlockedLevel(newMax);
+    return true;
+  }
+  return false;
+}
+
+/** Injected once: LEVEL_MAX unique @keyframes for level chip motion + border hue. */
+function ensureLevelChipAnimationStyles() {
+  if (document.getElementById("level-chip-keyframes")) return;
+  const chunks = [];
+  for (let n = 1; n <= LEVEL_MAX; n += 1) {
+    const t1 = ((n * 3) % 11) - 5;
+    const t2 = ((n * 7) % 13) - 6;
+    const t3 = ((n * 13) % 9) - 4;
+    const u1 = ((n * 5) % 7) - 3;
+    const u2 = ((n * 11) % 7) - 3;
+    const u3 = ((n * 17) % 9) - 4;
+    const r1 = ((n * 19) % 15) - 7;
+    const r2 = ((n * 23) % 17) - 8;
+    const r3 = ((n * 29) % 13) - 6;
+    const s = 1 + ((n % 7) - 3) * 0.02;
+    const s2 = 1 + ((n % 5) - 2) * 0.025;
+    const h = (n * 47) % 360;
+    chunks.push(`@keyframes level-chip-anim-${n} {
+  0%, 100% { transform: translate(0,0) rotate(0deg) scale(1); border-color: rgba(255,255,255,0.12); }
+  25% { transform: translate(${t1}px,${u1}px) rotate(${r1}deg) scale(${s.toFixed(3)}); border-color: hsla(${h},62%,58%,0.45); }
+  50% { transform: translate(${t2}px,${u2}px) rotate(${r2}deg) scale(${s2.toFixed(3)}); border-color: hsla(${(h + 40) % 360},55%,52%,0.5); }
+  75% { transform: translate(${t3}px,${u3}px) rotate(${r3}deg) scale(1); border-color: hsla(${(h + 80) % 360},58%,56%,0.42); }
+}`);
+  }
+  const el = document.createElement("style");
+  el.id = "level-chip-keyframes";
+  el.textContent = chunks.join("\n");
+  document.head.appendChild(el);
+}
+
+/** Injected once: per-level chip gradients + matching in-game glow. */
+function ensureLevelThemeStyles() {
+  if (document.getElementById("level-theme-styles")) return;
+  const chunks = [];
+  for (let n = 1; n <= LEVEL_MAX; n += 1) {
+    const h1 = (n * 47) % 360;
+    const h2 = (h1 + 48 + (n % 17) * 3) % 360;
+    const h3 = (h2 + 35) % 360;
+    chunks.push(`#screen-game[data-theme-level="${n}"]{--game-theme-glow:hsla(${h1},72%,52%,0.32);}`);
+    chunks.push(
+      `.level-chip.level-theme-${n}:not(.level-chip--locked){background:linear-gradient(152deg,hsla(${h1},52%,26%,0.95),hsla(${h2},46%,16%,0.98) 55%,hsla(${h3},40%,20%,0.92));color:hsla(${h1},18%,97%,0.98);border-color:hsla(${h1},45%,48%,0.38);}`
+    );
+    chunks.push(
+      `.level-chip.level-theme-${n}.level-chip--locked{background:linear-gradient(165deg,hsla(${h1},28%,12%,0.92),hsla(${h2},22%,8%,0.96));border-color:rgba(255,255,255,0.08);}`
+    );
+  }
+  const el = document.createElement("style");
+  el.id = "level-theme-styles";
+  el.textContent = chunks.join("\n");
+  document.head.appendChild(el);
+}
 
 /** Short celebratory lines when a full sushi is plated */
 const SUSHI_BURST_LINES = ["Perfect!", "Delicious!", "Fresh!", "Combo!", "Omakase!", "Chef's kiss!", "Irasshaimase!"];
@@ -119,12 +292,109 @@ function pickRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function shuffleCopy(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Build this order’s ingredient list: random count and order from the roll’s pool.
+ * Higher levels skew toward more ingredients per plate.
+ */
+function randomIngredientsForRoll(pool, level) {
+  const n = pool.length;
+  if (n === 0) return [];
+  const p = levelProgress(level);
+  const minDesired = 1 + Math.floor(p * Math.max(0, n - 1) * 0.55);
+  const minK = Math.min(n, Math.max(1, minDesired));
+  const k = minK + Math.floor(Math.random() * (n - minK + 1));
+  return shuffleCopy(pool).slice(0, k);
+}
+
 function formatYen(n) {
   return `¥${Math.max(0, Math.round(n)).toLocaleString()}`;
 }
 
 function $(id) {
   return document.getElementById(id);
+}
+
+/** Last tapped playable level on the menu (used when starting a shift). */
+let menuSelectedLevel = 1;
+
+function refreshLevelHint() {
+  const hint = $("level-hint");
+  if (!hint) return;
+  const maxU = loadMaxUnlockedLevel();
+  if (menuSelectedLevel > maxU) menuSelectedLevel = maxU;
+  const cfg = getLevelConfig(menuSelectedLevel);
+  const theme = LEVEL_THEME_TITLES[menuSelectedLevel - 1] || "Kitchen";
+  hint.textContent = `Selected: level ${menuSelectedLevel} — ${theme} · ${cfg.durationSec}s clock · unlocked through level ${maxU}. Let the timer finish with at least one plate to unlock the next.`;
+}
+
+function fillLockedLevelChip(btn, n) {
+  const lock = document.createElement("span");
+  lock.className = "level-chip__lock";
+  lock.setAttribute("aria-hidden", "true");
+  lock.innerHTML =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18V12a10 10 0 0 1 20 0v6"/><rect x="7" y="18" width="26" height="18" rx="3.5"/><circle cx="20" cy="27" r="2.2" fill="currentColor" stroke="none"/></svg>';
+  const num = document.createElement("span");
+  num.className = "level-chip__num";
+  num.textContent = String(n);
+  btn.appendChild(lock);
+  btn.appendChild(num);
+}
+
+function renderLevelGrid() {
+  const grid = $("level-grid");
+  if (!grid) return;
+  ensureLevelChipAnimationStyles();
+  ensureLevelThemeStyles();
+  const maxU = loadMaxUnlockedLevel();
+  if (menuSelectedLevel > maxU) menuSelectedLevel = maxU;
+  if (menuSelectedLevel < 1) menuSelectedLevel = 1;
+
+  grid.innerHTML = "";
+  for (let n = 1; n <= LEVEL_MAX; n += 1) {
+    const unlocked = n <= maxU;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `level-chip level-theme-${n}`;
+    btn.dataset.level = String(n);
+    const themeTitle = LEVEL_THEME_TITLES[n - 1] || "Kitchen";
+    btn.title = `Level ${n} — ${themeTitle}`;
+
+    const dur = `${(1.72 + (n % 19) * 0.035).toFixed(3)}s`;
+    if (unlocked) {
+      const num = document.createElement("span");
+      num.className = "level-chip__num";
+      num.textContent = String(n);
+      btn.appendChild(num);
+      btn.style.animation = `level-chip-anim-${n} ${dur} ease-in-out infinite`;
+      btn.classList.toggle("level-chip--selected", n === menuSelectedLevel);
+      btn.setAttribute("aria-pressed", n === menuSelectedLevel ? "true" : "false");
+      btn.setAttribute("aria-label", `Level ${n}, ${themeTitle}, unlocked`);
+      btn.addEventListener("click", () => {
+        menuSelectedLevel = n;
+        renderLevelGrid();
+      });
+    } else {
+      btn.classList.add("level-chip--locked");
+      btn.disabled = true;
+      btn.style.animation = "none";
+      fillLockedLevelChip(btn, n);
+      btn.setAttribute(
+        "aria-label",
+        `Level ${n}, ${themeTitle}, locked until level ${n - 1} is cleared`
+      );
+    }
+    grid.appendChild(btn);
+  }
+  refreshLevelHint();
 }
 
 /** Escape text for safe inline HTML in burst UI */
@@ -226,6 +496,10 @@ function showScreen(name) {
   Object.values(screens).forEach((el) => el && el.classList.remove("active"));
   const el = screens[name];
   if (el) el.classList.add("active");
+
+  document.body.classList.toggle("game-restaurant", name === "game");
+
+  if (name === "menu") renderLevelGrid();
 
   const goCard = $("gameover-card");
   if (goCard) {
@@ -414,7 +688,7 @@ const game = {
   active: false,
   /** Blocks typing while the next order animates in */
   inputLocked: false,
-  difficulty: "medium",
+  level: 1,
   durationSec: 60,
   timeLeft: 60,
   timerId: null,
@@ -437,10 +711,11 @@ function allSushiNames() {
 }
 
 function pickNextOrder() {
-  const cfg = DIFFICULTY[game.difficulty] || DIFFICULTY.medium;
+  const cfg = getLevelConfig(game.level);
   const names = allSushiNames();
   game.currentSushiName = cfg.pickRecipe(names);
-  game.ingredients = [...SUSHI_MENU[game.currentSushiName]];
+  const pool = SUSHI_MENU[game.currentSushiName] || [];
+  game.ingredients = randomIngredientsForRoll(pool, game.level);
   game.ingredientIndex = 0;
   game.charIndex = 0;
   game.ingredientStartedAt = performance.now();
@@ -449,7 +724,7 @@ function pickNextOrder() {
 function yenForIngredientSpeed(elapsedMs, ingredient, cfg) {
   const budget = Math.max(
     800,
-    ingredient.length * cfg.msPerCharBudget * (game.difficulty === "hard" ? 0.92 : 1)
+    ingredient.length * cfg.msPerCharBudget * (cfg.speedTightness ?? 1)
   );
   const ratio = Math.min(1, elapsedMs / budget);
   const speedPortion = 22 * (1 - ratio);
@@ -492,7 +767,7 @@ function scheduleNextOrderAfterSushi(totalReward, burstText, detailLine) {
 function completeCurrentIngredient() {
   /** Money before this ingredient line resolves (used for smooth HUD counting). */
   const prevMoney = game.money;
-  const cfg = DIFFICULTY[game.difficulty] || DIFFICULTY.medium;
+  const cfg = getLevelConfig(game.level);
   const ing = game.ingredients[game.ingredientIndex];
   const elapsed = performance.now() - game.ingredientStartedAt;
   const bonus = yenForIngredientSpeed(elapsed, ing, cfg);
@@ -550,9 +825,9 @@ function resetGameState() {
 }
 
 function startGame() {
-  const diffInput = document.querySelector('input[name="difficulty"]:checked');
-  game.difficulty = diffInput ? diffInput.value : "medium";
-  const cfg = DIFFICULTY[game.difficulty] || DIFFICULTY.medium;
+  const maxU = loadMaxUnlockedLevel();
+  game.level = Math.max(1, Math.min(maxU, Math.floor(menuSelectedLevel) || 1));
+  const cfg = getLevelConfig(game.level);
   resetGameState();
   game.durationSec = cfg.durationSec;
   game.timeLeft = cfg.durationSec;
@@ -572,13 +847,15 @@ function startGame() {
     game.timeLeft -= 1;
     $("game-timer").textContent = String(Math.max(0, game.timeLeft));
     updateTimerBar();
-    if (game.timeLeft <= 0) endGame();
+    if (game.timeLeft <= 0) endGame("timer");
   }, 1000);
   showScreen("game");
 }
 
-function endGame() {
+function endGame(reason = "timer") {
   if (!game.active && !game.timerId) return;
+  const levelPlayed = game.level;
+  const plates = game.completed;
   game.active = false;
   game.inputLocked = false;
   if (game.timerId) {
@@ -586,6 +863,11 @@ function endGame() {
     game.timerId = null;
   }
   SFX.gameOver();
+
+  let unlockedNext = false;
+  if (reason === "timer") {
+    unlockedNext = tryUnlockNextLevel(levelPlayed, plates);
+  }
 
   const user = findUser(getSessionUser());
   if (user) {
@@ -606,8 +888,28 @@ function endGame() {
   $("go-served").textContent = String(game.completed);
   $("go-streak").textContent = String(game.bestStreakThisRun);
 
+  const goUnlock = $("go-unlock");
+  if (goUnlock) {
+    if (unlockedNext) {
+      const m = loadMaxUnlockedLevel();
+      goUnlock.textContent =
+        m >= LEVEL_MAX
+          ? "Every level is now unlocked. You cleared the path to the top!"
+          : `Level ${m} unlocked. Main menu → pick your next challenge.`;
+      goUnlock.classList.remove("hidden");
+    } else {
+      goUnlock.textContent = "";
+      goUnlock.classList.add("hidden");
+    }
+  }
+
   const card = $("order-card");
   if (card) card.classList.remove("order-card--celebrate");
+
+  const gameScreen = $("screen-game");
+  if (gameScreen) gameScreen.removeAttribute("data-theme-level");
+
+  renderSushiStage();
 
   showScreen("gameover");
 }
@@ -615,6 +917,135 @@ function endGame() {
 // ---------------------------------------------------------------------------
 // Typing UI: per-character spans, cursor, correct / error states
 // ---------------------------------------------------------------------------
+function mapIngredientVisual(ing) {
+  const s = String(ing).toLowerCase();
+  const pairs = [
+    ["nori", "sushi-layer--nori"],
+    ["rice", "sushi-layer--rice"],
+    ["salmon", "sushi-layer--salmon"],
+    ["tuna", "sushi-layer--tuna"],
+    ["crab", "sushi-layer--crab"],
+    ["avocado", "sushi-layer--avocado"],
+    ["cucumber", "sushi-layer--cucumber"],
+    ["shrimp", "sushi-layer--shrimp"],
+    ["tempura", "sushi-layer--tempura"],
+    ["lobster", "sushi-layer--lobster"],
+    ["eel", "sushi-layer--eel"],
+    ["egg", "sushi-layer--egg"],
+    ["tamago", "sushi-layer--egg"],
+    ["mayo", "sushi-layer--mayo"],
+    ["cheese", "sushi-layer--cheese"],
+    ["cream", "sushi-layer--cheese"],
+    ["spicy", "sushi-layer--spicy"],
+    ["sauce", "sushi-layer--sauce"],
+    ["jalap", "sushi-layer--veg"],
+    ["mango", "sushi-layer--mango"],
+    ["corn", "sushi-layer--corn"],
+    ["carrot", "sushi-layer--carrot"],
+    ["tobiko", "sushi-layer--tobiko"],
+    ["caviar", "sushi-layer--tobiko"],
+    ["sesame", "sushi-layer--sesame"],
+    ["ink", "sushi-layer--ink"],
+    ["squid", "sushi-layer--ink"],
+    ["chicken", "sushi-layer--chicken"],
+    ["steak", "sushi-layer--steak"],
+    ["brisket", "sushi-layer--steak"],
+    ["smoked", "sushi-layer--smoked"],
+    ["matcha", "sushi-layer--matcha"],
+    ["gold", "sushi-layer--gold"],
+    ["pistachio", "sushi-layer--pistachio"],
+    ["ranch", "sushi-layer--sauce"],
+    ["crunch", "sushi-layer--crunch"],
+    ["flake", "sushi-layer--crunch"],
+    ["kiwi", "sushi-layer--mango"],
+    ["radish", "sushi-layer--veg"],
+    ["asparagus", "sushi-layer--veg"],
+    ["scallion", "sushi-layer--veg"],
+    ["yellowtail", "sushi-layer--tuna"],
+    ["purple", "sushi-layer--matcha"],
+    ["wagyu", "sushi-layer--steak"],
+    ["breaded", "sushi-layer--tempura"],
+    ["pickled", "sushi-layer--veg"],
+    ["daikon", "sushi-layer--veg"],
+    ["shiso", "sushi-layer--veg"],
+    ["cactus", "sushi-layer--veg"],
+    ["jalapeno", "sushi-layer--veg"],
+    ["lime", "sushi-layer--mango"],
+    ["yuzu", "sushi-layer--mango"],
+    ["miso", "sushi-layer--sauce"],
+    ["teriyaki", "sushi-layer--sauce"],
+    ["bbq", "sushi-layer--sauce"],
+    ["cajun", "sushi-layer--spicy"],
+    ["crispy", "sushi-layer--crunch"],
+    ["chips", "sushi-layer--crunch"],
+    ["onion", "sushi-layer--veg"],
+    ["tofu", "sushi-layer--egg"],
+    ["uni", "sushi-layer--tobiko"],
+  ];
+  for (const [k, cls] of pairs) {
+    if (s.includes(k)) return cls;
+  }
+  return "sushi-layer--accent";
+}
+
+function sushiTypingProgress() {
+  const ings = game.ingredients;
+  if (!ings.length) return { ratio: 0 };
+  let total = 0;
+  for (const x of ings) total += x.length;
+  let done = 0;
+  for (let i = 0; i < game.ingredientIndex; i += 1) done += ings[i].length;
+  done += game.charIndex;
+  const ratio = total ? done / total : 0;
+  return { ratio };
+}
+
+function renderSushiStage() {
+  const stack = $("sushi-stack");
+  const stage = $("sushi-stage");
+  if (!stack || !stage) return;
+  if (!game.active) {
+    stack.innerHTML = "";
+    stage.dataset.progress = "0";
+    stage.classList.remove("sushi-stage--alive", "sushi-stage--happy");
+    return;
+  }
+  const ings = game.ingredients;
+  stack.innerHTML = "";
+  ings.forEach((ing, i) => {
+    const el = document.createElement("div");
+    let fill = 0;
+    if (i < game.ingredientIndex) fill = 1;
+    else if (i === game.ingredientIndex) {
+      const len = ing.length || 1;
+      fill = game.charIndex / len;
+    } else {
+      fill = 0.1;
+    }
+    const ghost = i > game.ingredientIndex;
+    el.className = `sushi-layer ${mapIngredientVisual(ing)}${ghost ? " sushi-layer--ghost" : ""}`;
+    const minFill = ghost ? 0.08 : 0.04;
+    el.style.setProperty("--fill", String(Math.min(1, Math.max(minFill, fill))));
+    el.title = ing;
+    stack.appendChild(el);
+  });
+  const { ratio } = sushiTypingProgress();
+  stage.dataset.progress = String(Math.round(ratio * 100));
+  stage.classList.toggle("sushi-stage--alive", ratio > 0.04);
+  stage.classList.toggle("sushi-stage--happy", ratio >= 0.94);
+}
+
+function spawnSushiSparkle() {
+  const host = $("sushi-sparkles");
+  if (!host) return;
+  const sp = document.createElement("span");
+  sp.className = "sushi-spark";
+  sp.style.setProperty("--sx", `${16 + Math.random() * 68}%`);
+  sp.style.bottom = `${36 + Math.random() * 48}px`;
+  host.appendChild(sp);
+  window.setTimeout(() => sp.remove(), 800);
+}
+
 function renderIngredientChars() {
   const wrap = $("ingredient-chars");
   if (!wrap) return;
@@ -628,6 +1059,7 @@ function renderIngredientChars() {
     else span.classList.add("pending");
     wrap.appendChild(span);
   }
+  renderSushiStage();
 }
 
 function renderIngredientPills() {
@@ -674,11 +1106,22 @@ function renderGameUI(opts = {}) {
   const streakEl = $("game-streak");
   if (streakEl) streakEl.textContent = String(game.streak);
 
-  const cfg = DIFFICULTY[game.difficulty] || DIFFICULTY.medium;
-  $("game-diff-label").textContent = cfg.label;
+  const cfg = getLevelConfig(game.level);
+  const levelEl = $("game-level-label");
+  if (levelEl) levelEl.textContent = cfg.label;
+
+  const gameScreen = $("screen-game");
+  if (gameScreen) {
+    if (game.active) {
+      gameScreen.dataset.themeLevel = String(game.level);
+    } else {
+      gameScreen.removeAttribute("data-theme-level");
+    }
+  }
 
   renderIngredientPills();
   renderIngredientChars();
+  renderSushiStage();
   updateTimerBar();
 }
 
@@ -714,6 +1157,14 @@ function onKeydown(ev) {
   const expected = ing[game.charIndex];
   if (ev.key === expected) {
     SFX.correct();
+    spawnSushiSparkle();
+    const tw = $("ingredient-type-wrap");
+    if (tw) {
+      tw.classList.remove("typing-panel--tick");
+      void tw.offsetWidth;
+      tw.classList.add("typing-panel--tick");
+      window.setTimeout(() => tw.classList.remove("typing-panel--tick"), 260);
+    }
     game.charIndex += 1;
     if (game.charIndex >= ing.length) {
       completeCurrentIngredient();
@@ -878,13 +1329,15 @@ function wireIntro() {
 }
 
 $("btn-abort-game").addEventListener("click", () => {
-  if (game.active) endGame();
+  if (game.active) endGame("abort");
 });
 
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+  ensureLevelChipAnimationStyles();
+  renderLevelGrid();
   wireIntro();
   wireAuth();
   wireMenu();
